@@ -1,6 +1,6 @@
 # ENTROPY
 
-**The Entropy Collection** — 21 suits. No owners. One system.
+**The Entropy Collection** — 21 garments. No owners. One system.
 
 A ceremonial waistcoat that functions as a physical interface to a permanent civic record. Each suit holds a Bitcoin wallet, carries NFC buttons that link to a live dashboard, and accumulates a chain-verified history of custody, patches, and everyone who has ever worn it.
 
