@@ -3,7 +3,7 @@
 
 ENTROPY — the brand
 
-The Entropy Collection — the 21 suits as a body of work
+The Entropy Collection —  limited edition of garments as a body of work
 
 Entropy Jacket №01 to №21  — each individual garment 
 
