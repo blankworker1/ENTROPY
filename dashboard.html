@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jacket — Proof of Work/Wear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #0e0c08;
+    --paper:      #f5f0e8;
+    --gold:       #b8920c;
+    --gold-dim:   #7a6008;
+    --gold-pale:  #f0e4b0;
+    --rule:       #c8a828;
+    --muted:      #6b6050;
+    --border:     #d4c090;
+    --mono:       'Share Tech Mono', monospace;
+    --serif:      'Cormorant Garamond', serif;
+    --body-serif: 'Libre Baskerville', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--body-serif);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 48px 0 0;
+    border-bottom: 1px solid var(--gold-dim);
+    margin-bottom: 0;
+  }
+
+  .system-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+
+  .jacket-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.2s;
+  }
+
+  .jacket-number {
+    font-family: var(--serif);
+    font-size: clamp(72px, 16vw, 120px);
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+  }
+
+  .jacket-title {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .jacket-title-main {
+    font-family: var(--serif);
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 300;
+    color: var(--paper);
+    font-style: italic;
+    line-height: 1.2;
+  }
+
+  .jacket-title-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .header-rule {
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-dim) 40%, transparent 100%);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.4s;
+  }
+
+  /* ── Bitcoin value panel ── */
+  .value-panel {
+    background: rgba(184, 146, 12, 0.06);
+    border: 1px solid var(--gold-dim);
+    border-left: 3px solid var(--gold);
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.35s;
+  }
+
+  .value-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .value-btc {
+    font-family: var(--mono);
+    font-size: clamp(28px, 7vw, 44px);
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .value-fiat {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .value-note {
+    font-family: var(--body-serif);
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(184,146,12,0.2);
+    line-height: 1.6;
+  }
+
+  .value-xpub-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(184,146,12,0.2);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .qr-container {
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+  }
+
+  .qr-container canvas,
+  .qr-container img {
+    display: block;
+    width: 120px !important;
+    height: 120px !important;
+    image-rendering: pixelated;
+  }
+
+  .qr-save-hint {
+    position: absolute;
+    inset: 0;
+    background: rgba(14,12,8,0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .qr-container:hover .qr-save-hint { opacity: 1; }
+
+  .qr-meta {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .qr-meta-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .qr-xpub-text {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--gold-dim);
+    word-break: break-all;
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+
+  .qr-instruction {
+    font-family: var(--body-serif);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── Node status (replaces aggregate panel) ── */
+  .node-status {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 20px;
+    border: 1px solid rgba(184,146,12,0.2);
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.45s;
+  }
+
+  .node-status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .node-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .node-led.online  { background: #4a9a4a; box-shadow: 0 0 5px rgba(74,154,74,0.5); }
+  .node-led.syncing { background: #b8920c; box-shadow: 0 0 5px rgba(184,146,12,0.5); }
+  .node-led.offline { background: #555; }
+
+  .node-status-text {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .node-status-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--gold-dim);
+    opacity: 0.3;
+  }
+
+  .node-system-link {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    text-decoration: none;
+    text-transform: uppercase;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .node-system-link:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold-dim);
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards var(--delay, 0.5s);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--gold-dim);
+    opacity: 0.4;
+  }
+
+  /* ── Custodian timeline ── */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline-entry {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 0 20px;
+    position: relative;
+  }
+
+  .timeline-entry::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 32px;
+    bottom: -1px;
+    width: 1px;
+    background: var(--gold-dim);
+    opacity: 0.3;
+  }
+
+  .timeline-entry:last-child::before { display: none; }
+
+  .timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--gold);
+    background: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .timeline-dot.active {
+    background: var(--gold);
+  }
+
+  .timeline-gen {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--gold-dim);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  .timeline-content {
+    padding: 0 0 32px;
+  }
+
+  .timeline-name {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+
+  .timeline-dates {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .timeline-status {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .timeline-status.current {
+    background: rgba(184,146,12,0.12);
+    border-color: var(--gold);
+  }
+
+  /* ── Event log ── */
+  .event-log {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .event-entry {
+    display: grid;
+    grid-template-columns: 68px 80px 1fr;
+    gap: 0 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(184,146,12,0.1);
+    align-items: start;
+  }
+
+  .event-entry:last-child {
+    border-bottom: none;
+  }
+
+  .event-date {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    line-height: 1.6;
+    letter-spacing: 0.05em;
+  }
+
+  .event-type-badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    display: inline-block;
+    margin-top: 1px;
+  }
+
+  .event-type-badge.TRANSFER { color: var(--gold); border: 1px solid var(--gold-dim); }
+  .event-type-badge.PATCH    { color: #8fbc8f; border: 1px solid #3a6b3a; }
+  .event-type-badge.NOTE     { color: #9ab0c8; border: 1px solid #3a5068; }
+  .event-type-badge.WORN     { color: #c89ab0; border: 1px solid #6b3a58; }
+  .event-type-badge.GENESIS  { color: var(--muted); border: 1px solid #333; }
+
+  .event-body {
+    font-family: var(--body-serif);
+    font-size: 13px;
+    color: rgba(245,240,232,0.8);
+    line-height: 1.6;
+  }
+
+  .event-hash {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--gold-dim);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Chain integrity ── */
+  .integrity-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(184,146,12,0.2);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.55s;
+  }
+
+  .integrity-dot {
+    width: 8px;
+    height: 8px;
+    background: #4a9a4a;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(74,154,74,0.6);
+  }
+
+  .integrity-dot.invalid { background: #9a4a4a; box-shadow: 0 0 6px rgba(154,74,74,0.6); }
+
+  .integrity-text {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .integrity-tip {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--gold-dim);
+    word-break: break-all;
+    margin-left: auto;
+  }
+
+  /* ── Privacy statement ── */
+  .privacy-note {
+    font-family: var(--body-serif);
+    font-size: 11px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.8;
+    padding: 20px 24px;
+    border-left: 2px solid var(--gold-dim);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.65s;
+  }
+
+  /* ── Portrait gallery ── */
+  .portrait-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .portrait-card {
+    position: relative;
+    cursor: default;
+  }
+
+  .portrait-photo {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+    background: rgba(184,146,12,0.08);
+  }
+
+  .portrait-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(14,12,8,0.88));
+    padding: 20px 6px 6px;
+  }
+
+  .portrait-name {
+    font-family: var(--serif);
+    font-size: 11px;
+    color: var(--paper);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  .portrait-loc {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--gold-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.05em;
+  }
+
+  .portrait-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 520px) {
+    .portrait-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+    .portrait-name { font-size: 10px; }
+  }
+    font-family: var(--body-serif);
+    font-size: 11px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.8;
+    padding: 20px 24px;
+    border-left: 2px solid var(--gold-dim);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.65s;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding-top: 32px;
+    border-top: 1px solid var(--gold-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.7s;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--gold-dim);
+    letter-spacing: 0.15em;
+    line-height: 2;
+    text-transform: uppercase;
+  }
+
+  .footer-right {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* ── Loading / error states ── */
+  .loading {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 0.2em;
+    padding: 12px 0;
+    text-transform: uppercase;
+  }
+
+  .loading::after {
+    content: '';
+    animation: dots 1.2s steps(3, end) infinite;
+  }
+
+  @keyframes dots {
+    0%   { content: ''; }
+    33%  { content: '.'; }
+    66%  { content: '..'; }
+    100% { content: '...'; }
+  }
+
+  .error-msg {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #9a4a4a;
+    letter-spacing: 0.1em;
+    padding: 12px 0;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .page { padding: 0 16px 60px; }
+
+    .header { padding: 32px 0 0; }
+
+    .value-panel { padding: 18px 16px; }
+
+    /* Bump all 8px/9px mono labels to 11px on mobile for legibility */
+    .system-name,
+    .value-label,
+    .section-title,
+    .event-date,
+    .event-type-badge,
+    .event-hash,
+    .timeline-dates,
+    .timeline-gen,
+    .timeline-status,
+    .integrity-text,
+    .integrity-tip,
+    .node-status-text,
+    .node-system-link,
+    .footer-left,
+    .qr-meta-label,
+    .qr-xpub-text,
+    .jacket-title-sub { font-size: 11px; letter-spacing: 0.08em; }
+
+    .value-xpub-section { flex-direction: column; gap: 16px; }
+    .qr-container { align-self: flex-start; }
+
+    .node-status { flex-wrap: wrap; gap: 10px; }
+    .node-system-link { margin-left: 0; width: 100%; margin-top: 4px; }
+
+    /* Event log — collapse 3 cols to 2-row layout */
+    .event-entry {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 14px 0;
+    }
+    .event-date { order: 1; }
+    .event-entry > div:nth-child(2) { order: 2; }
+    .event-body { order: 3; font-size: 13px; }
+
+    .integrity-tip { display: none; }
+
+    .footer { flex-direction: column; align-items: flex-start; }
+    .footer-right { text-align: left; }
+
+    .timeline-name { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div style="text-align:center;margin-bottom:12px"><img src="/entropy_mark_gold.svg" width="36" height="54" alt="ENTROPY" style="opacity:0.85"></div>
+    <div class="system-name">Proof of Work/Wear — Public Record</div>
+    <div class="jacket-identity">
+      <div class="jacket-number" id="jacketNumber">—</div>
+      <div class="jacket-title">
+        <div class="jacket-title-main" id="jacketTitle">Loading jacket record</div>
+        <div class="jacket-title-sub" id="jacketFounded">—</div>
+      </div>
+    </div>
+    <div class="header-rule"></div>
+  </header>
+
+  <!-- Bitcoin value -->
+  <div class="value-panel" id="valuePanel">
+    <div class="value-label">Bitcoin held — permanent, irrecoverable</div>
+    <div class="value-btc" id="valueBtc"><span class="loading">Querying blockchain</span></div>
+    <div class="value-fiat" id="valueFiat"></div>
+    <div class="value-note">
+      No private key exists for this wallet. Bitcoin contributed here is permanently committed.
+      This balance can only increase. Scan the QR code with any Bitcoin wallet to contribute.
+    </div>
+    <div class="value-xpub-section">
+      <div class="qr-container" id="qrContainer" title="Click to save QR code">
+        <div id="qrCode"></div>
+        <div class="qr-save-hint">Save QR</div>
+      </div>
+      <div class="qr-meta">
+        <div class="qr-meta-label">Extended public key (xpub)</div>
+        <div class="qr-xpub-text" id="valueXpub"></div>
+        <div class="qr-instruction">
+          Scan with any Bitcoin wallet to derive a receiving address
+          and contribute to this jacket's permanent holding.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Node network status -->
+  <div class="node-status" id="nodeStatus">
+    <div class="node-status-item">
+      <div class="node-led online" id="thisNodeLed"></div>
+      <div class="node-status-text">Node <span id="thisNodeId">—</span> — online</div>
+    </div>
+    <div class="node-status-divider"></div>
+    <div class="node-status-item">
+      <div class="node-led online" id="networkLed"></div>
+      <div class="node-status-text" id="networkText">Checking network</div>
+    </div>
+    <a href="/worn" class="node-system-link">Wear the jacket →</a>
+    <a href="/system" class="node-system-link" style="margin-left:8px">All 21 jackets →</a>
+  </div>
+
+  <!-- Chain integrity -->
+  <div class="integrity-bar" id="integrityBar">
+    <div class="integrity-dot" id="integrityDot"></div>
+    <div class="integrity-text" id="integrityText">Verifying chain</div>
+    <div class="integrity-tip" id="integrityTip"></div>
+  </div>
+
+  <!-- Custodian history -->
+  <div class="section" style="--delay: 0.5s">
+    <div class="section-header">
+      <div class="section-title">Custodian record</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="loading">Loading custody history</div>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div class="section" style="--delay: 0.58s">
+    <div class="section-header">
+      <div class="section-title">Full event log</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="event-log" id="eventLog">
+      <div class="loading">Loading events</div>
+    </div>
+  </div>
+
+  <!-- Portrait gallery -->
+  <div class="section" style="--delay: 0.62s" id="portraitSection" style="display:none">
+    <div class="section-header">
+      <div class="section-title">Worn by</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="portrait-count" id="portraitCount"></div>
+    <div class="portrait-grid" id="portraitGrid"></div>
+  </div>
+
+  <!-- Privacy statement -->
+  <div class="privacy-note">
+    No record is kept of who scans this code or taps these buttons.
+    No interaction generates an identity record for the viewer.
+    The only person whose identity appears in this record is the current custodian,
+    who consented to this at the moment of accepting possession.
+    This is an architectural commitment, not a policy setting.
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      Jacket Protocol v1.0<br>
+      21 jackets · no owners · one system<br>
+      <span id="footerNodeId"></span>
+    </div>
+    <div class="footer-right" id="footerQuote">
+      A ledger you can wear.<br>A ceremony you can scan.<br><span style="font-size:0.85em;opacity:0.7">Tailoring by Claude</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const JACKET   = (params.get('jacket') || '01').padStart(2, '0');
+const API      = '';
+
+// ── Utilities ───────────────────────────────────────────────────────────────
+const fmt = {
+  date: d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+  dateShort: d => new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
+  hash: h => h ? h.slice(0, 12) + '…' + h.slice(-6) : '—',
+  btc: v => (v === null || v === undefined) ? '—' : parseFloat(v).toFixed(8) + ' BTC',
+};
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── QR code ─────────────────────────────────────────────────────────────────
+function renderQR(xpub) {
+  const container = document.getElementById('qrCode');
+  container.innerHTML = '';
+  new QRCode(container, {
+    text:         xpub,
+    width:        120,
+    height:       120,
+    colorDark:    '#f5f0e8',
+    colorLight:   '#0e0c08',
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+
+  // Click to save
+  document.getElementById('qrContainer').addEventListener('click', () => {
+    const canvas = container.querySelector('canvas');
+    if (!canvas) return;
+    const link    = document.createElement('a');
+    link.download = `jacket-${JACKET}-xpub-qr.png`;
+    link.href     = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+// ── Render helpers ───────────────────────────────────────────────────────────
+function renderTimeline(events) {
+  const transfers = events.filter(e =>
+    e.event_type === 'GENESIS' ||
+    (e.event_type === 'TRANSFER' && e.payload?.status === 'confirmed')
+  );
+  if (!transfers.length) return '<div class="error-msg">No custody records found</div>';
+
+  return transfers.map((e, i) => {
+    const isGenesis = e.event_type === 'GENESIS';
+    const isLast    = i === transfers.length - 1;
+    const name      = isGenesis ? e.payload.custodian_name : e.payload.incoming_custodian;
+    const genNum    = String(i).padStart(2, '0');
+    return `
+      <div class="timeline-entry">
+        <div class="timeline-marker">
+          <div class="timeline-dot ${isLast ? 'active' : ''}"></div>
+          <div class="timeline-gen">G${genNum}</div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-name">${escHtml(name)}</div>
+          <div class="timeline-dates">${fmt.dateShort(e.timestamp)}${isLast ? ' — present' : ''}</div>
+          <span class="timeline-status ${isLast ? 'current' : ''}">
+            ${isLast ? 'Current custodian' : 'Former custodian'}
+          </span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function eventText(e) {
+  switch (e.event_type) {
+    case 'GENESIS':  return `Jacket ${e.payload.jacket_number} created. First custodian: ${escHtml(e.payload.custodian_name)}.`;
+    case 'TRANSFER':
+      if (e.payload.status === 'confirmed')
+        return `Custody transferred from ${escHtml(e.payload.outgoing_custodian)} to ${escHtml(e.payload.incoming_custodian)}. ${e.payload.location ? 'Location: ' + escHtml(e.payload.location) + '.' : ''}`;
+      return `Transfer initiated to ${escHtml(e.payload.incoming_custodian)}. Awaiting confirmation.`;
+    case 'PATCH': return escHtml(e.payload.description || '—');
+    case 'NOTE':  return escHtml(e.payload.text || '—');
+    case 'WORN':  return `${escHtml(e.payload.name || '—')} — ${escHtml(e.payload.location || '—')}`;
+    default:      return e.event_type;
+  }
+}
+
+function renderEventLog(events) {
+  if (!events.length) return '<div class="error-msg">No events recorded</div>';
+  return [...events].reverse().map(e => `
+    <div class="event-entry">
+      <div class="event-date">${fmt.date(e.timestamp)}</div>
+      <div><span class="event-type-badge ${e.event_type}">${e.event_type}</span></div>
+      <div class="event-body">
+        ${eventText(e)}
+        <div class="event-hash">${fmt.hash(e.event_id)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Bitcoin balance ──────────────────────────────────────────────────────────
+async function fetchBitcoinBalance(xpub) {
+  try {
+    const data = await fetchJSON(`https://mempool.space/api/xpub/${xpub}`);
+    const sats = (data.chain_stats?.funded_txo_sum || 0) - (data.chain_stats?.spent_txo_sum || 0);
+    const btc  = sats / 1e8;
+    let fiatStr = '';
+    try {
+      const price = await fetchJSON('https://mempool.space/api/v1/prices');
+      const gbp   = price.GBP || price.USD || 0;
+      if (gbp) fiatStr = `£${(btc * gbp).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} at current rate`;
+    } catch {}
+    return { btc, fiatStr };
+  } catch (err) {
+    return { btc: null, fiatStr: '', error: err.message };
+  }
+}
+
+// ── Node status ──────────────────────────────────────────────────────────────
+async function loadNodeStatus(jacketCount) {
+  document.getElementById('thisNodeId').textContent = JACKET;
+  try {
+    const status = await fetchJSON(`${API}/api/sync/status`);
+    const chains = status.chains || {};
+    const active = Object.keys(chains).length;
+    document.getElementById('networkText').textContent =
+      `${active} of 21 jacket chains on this node`;
+  } catch {
+    const led  = document.getElementById('networkLed');
+    led.className = 'node-led offline';
+    document.getElementById('networkText').textContent = 'Network status unavailable';
+  }
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const [jacket, eventsData] = await Promise.all([
+      fetchJSON(`${API}/api/jacket/${JACKET}`),
+      fetchJSON(`${API}/api/jacket/${JACKET}/events`),
+    ]);
+
+    const events  = eventsData.events || [];
+    const genesis = events.find(e => e.event_type === 'GENESIS');
+
+    // Header
+    document.getElementById('jacketNumber').textContent  = `№ ${JACKET}`;
+    document.getElementById('jacketTitle').textContent   = 'Proof of Work/Wear';
+    document.getElementById('jacketFounded').textContent = genesis ? `Founded ${fmt.date(genesis.timestamp)}` : '';
+    document.getElementById('footerNodeId').textContent  = `Node ${JACKET}`;
+    document.title = `Jacket №${JACKET} — Proof of Work/Wear`;
+
+    // Chain integrity
+    const dot  = document.getElementById('integrityDot');
+    const text = document.getElementById('integrityText');
+    const tip  = document.getElementById('integrityTip');
+    if (jacket.chain_valid) {
+      text.textContent = 'Chain integrity verified';
+      tip.textContent  = jacket.chain_tip ? `Tip: ${jacket.chain_tip.slice(0,20)}…` : '';
+    } else {
+      dot.classList.add('invalid');
+      text.textContent = `Chain error: ${jacket.chain_valid_reason}`;
+    }
+
+    // Timeline and events
+    document.getElementById('timeline').innerHTML  = renderTimeline(events);
+    document.getElementById('eventLog').innerHTML  = renderEventLog(events);
+
+    // Portrait gallery — WORN events
+    renderPortraits(events);
+
+    // Node status
+    loadNodeStatus(events.length);
+
+    // Bitcoin + QR
+    const xpub = genesis?.payload?.xpub;
+    if (xpub) {
+      document.getElementById('valueXpub').textContent = xpub;
+      renderQR(xpub);
+      const { btc, fiatStr, error } = await fetchBitcoinBalance(xpub);
+      if (error || btc === null) {
+        document.getElementById('valueBtc').textContent  = '—';
+        document.getElementById('valueFiat').textContent = 'Balance unavailable — verify via xpub on mempool.space';
+      } else {
+        document.getElementById('valueBtc').textContent  = fmt.btc(btc);
+        document.getElementById('valueFiat').textContent = fiatStr;
+      }
+    } else {
+      document.getElementById('valueBtc').textContent = 'No xpub recorded';
+    }
+
+  } catch (err) {
+    document.getElementById('valueBtc').textContent = `Error: ${err.message}`;
+  }
+}
+
+// ── Portrait gallery ─────────────────────────────────────────
+function renderPortraits(events) {
+  const worns = events.filter(e => e.event_type === 'WORN');
+  const section = document.getElementById('portraitSection');
+  const grid    = document.getElementById('portraitGrid');
+  const count   = document.getElementById('portraitCount');
+
+  if (worns.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = '';
+  count.textContent = `${worns.length} ${worns.length === 1 ? 'person' : 'people'} have worn this jacket`;
+
+  grid.innerHTML = worns.map(e => {
+    const p        = e.payload;
+    const imgHash  = (p.image_hash || '').replace('sha256:', '');
+    const imgSrc   = imgHash
+      ? `${API}/api/jacket/${JACKET}/worn/image/${imgHash}`
+      : '';
+    const dateStr  = fmt.date(e.timestamp);
+    return `
+      <div class="portrait-card">
+        ${imgSrc
+          ? `<img class="portrait-photo" src="${imgSrc}"
+               alt="${escHtml(p.name)}"
+               loading="lazy"
+               onerror="this.style.background='rgba(184,146,12,0.12)'">`
+          : `<div class="portrait-photo"></div>`
+        }
+        <div class="portrait-caption">
+          <div class="portrait-name">${escHtml(p.name)}</div>
+          <div class="portrait-loc">${escHtml(p.location || dateStr)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+load();
+</script>
+</body>
+</html>
