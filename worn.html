@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0e0c08">
+<title>Proof of Work/Wear — Wear the Jacket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:      #0e0c08;
+  --paper:    #f5f0e8;
+  --gold:     #b8920c;
+  --gold-dim: #7a6008;
+  --muted:    #6b6050;
+  --border:   rgba(184,146,12,0.3);
+  --serif:    'Cormorant Garamond', serif;
+  --mono:     'Share Tech Mono', monospace;
+  --touch:    52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{background:var(--ink);color:var(--paper);font-family:var(--mono);min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
+
+/* Grain */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.3;pointer-events:none;z-index:0}
+
+.page{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 60px;flex:1;display:flex;flex-direction:column}
+
+/* Header */
+.header{padding:28px 0 20px;border-bottom:1px solid var(--border);margin-bottom:28px;text-align:center}
+.jacket-num{font-family:var(--serif);font-size:clamp(40px,14vw,64px);font-weight:300;color:var(--gold);line-height:1;margin-bottom:4px}
+.header-title{font-size:10px;letter-spacing:.25em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:4px}
+.header-sub{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--muted)}
+
+/* Screen system */
+.screen{display:none;flex-direction:column;flex:1;animation:fadeIn .25s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Screen: Intro ── */
+.intro-text{font-family:var(--serif);font-size:18px;font-style:italic;color:var(--paper);line-height:1.7;margin-bottom:24px;text-align:center}
+.intro-note{font-size:10px;letter-spacing:.1em;color:var(--muted);line-height:1.8;text-align:center;margin-bottom:36px}
+.btn-primary{width:100%;height:var(--touch);background:var(--gold);border:none;color:var(--ink);font-family:var(--mono);font-size:12px;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;border-radius:2px;-webkit-tap-highlight-color:transparent;transition:opacity .15s;flex-shrink:0}
+.btn-primary:active{opacity:.82}
+.btn-secondary{width:100%;height:44px;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;border-radius:2px;margin-top:10px;-webkit-tap-highlight-color:transparent;transition:border-color .15s,color .15s}
+.btn-secondary:active{border-color:var(--gold);color:var(--gold)}
+
+/* ── Screen: Camera ── */
+.camera-wrap{position:relative;width:100%;aspect-ratio:3/4;background:#000;border-radius:4px;overflow:hidden;margin-bottom:20px;flex-shrink:0}
+#videoEl{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#canvasEl{display:none}
+.camera-overlay{position:absolute;inset:0;pointer-events:none}
+.camera-frame{position:absolute;inset:16px;border:1px solid rgba(184,146,12,0.4);border-radius:2px}
+.camera-corner{position:absolute;width:16px;height:16px;border-color:var(--gold);border-style:solid}
+.camera-corner.tl{top:16px;left:16px;border-width:2px 0 0 2px}
+.camera-corner.tr{top:16px;right:16px;border-width:2px 2px 0 0}
+.camera-corner.bl{bottom:16px;left:16px;border-width:0 0 2px 2px}
+.camera-corner.br{bottom:16px;right:16px;border-width:0 2px 2px 0}
+.camera-hint{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.15em;color:rgba(245,240,232,.6);text-transform:uppercase}
+.shutter{width:72px;height:72px;border-radius:50%;background:var(--paper);border:3px solid var(--gold);margin:0 auto 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s,background .1s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.shutter:active{transform:scale(.92);background:var(--gold-pale)}
+.shutter-inner{width:52px;height:52px;border-radius:50%;background:var(--gold);transition:background .1s}
+.shutter:active .shutter-inner{background:var(--gold-dim)}
+.camera-retake{font-size:10px;letter-spacing:.15em;color:var(--muted);text-align:center;text-transform:uppercase;cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent}
+.camera-retake:active{color:var(--gold)}
+
+/* Preview */
+.preview-img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:4px;margin-bottom:20px;transform:scaleX(-1)}
+
+/* ── Screen: Details ── */
+.form-section{margin-bottom:20px}
+.form-label{display:block;font-size:10px;letter-spacing:.2em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px}
+.form-input{width:100%;background:rgba(184,146,12,.05);border:1px solid var(--border);color:var(--paper);font-family:var(--mono);font-size:14px;padding:13px 14px;border-radius:2px;outline:none;-webkit-appearance:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--gold)}
+.form-input::placeholder{color:var(--muted)}
+.consent-row{display:flex;gap:14px;align-items:flex-start;padding:16px 14px;background:rgba(184,146,12,.05);border:1px solid var(--border);border-radius:2px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:20px}
+.consent-box{width:20px;height:20px;border:1px solid var(--border);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;margin-top:1px}
+.consent-box.checked{background:var(--gold);border-color:var(--gold)}
+.consent-check{color:var(--ink);font-size:12px;display:none}
+.consent-box.checked .consent-check{display:block}
+.consent-text{font-size:11px;color:var(--muted);line-height:1.7;letter-spacing:.04em}
+
+/* ── Screen: Confirm ── */
+.confirm-photo{width:120px;height:160px;object-fit:cover;border-radius:4px;margin:0 auto 20px;display:block;transform:scaleX(-1)}
+.confirm-name{font-family:var(--serif);font-size:24px;color:var(--paper);text-align:center;margin-bottom:4px}
+.confirm-location{font-size:11px;letter-spacing:.1em;color:var(--muted);text-align:center;margin-bottom:28px;text-transform:uppercase}
+
+/* ── Screen: Done ── */
+.done-mark{font-family:var(--serif);font-size:72px;color:var(--gold);text-align:center;line-height:1;margin:32px 0 20px}
+.done-title{font-family:var(--serif);font-size:26px;font-style:italic;color:var(--paper);text-align:center;margin-bottom:12px}
+.done-text{font-size:11px;letter-spacing:.06em;color:var(--muted);text-align:center;line-height:1.8;margin-bottom:32px}
+.done-id{font-size:9px;letter-spacing:.1em;color:var(--gold-dim);text-align:center;word-break:break-all;padding:10px 14px;border:1px solid var(--border);border-radius:2px;margin-bottom:28px}
+
+/* Status */
+.status-bar{padding:12px 14px;font-size:11px;letter-spacing:.08em;margin-top:8px;min-height:40px;display:flex;align-items:center;gap:8px;border-radius:2px;text-transform:uppercase}
+.status-bar.hidden{display:none}
+.status-bar.working{background:rgba(184,146,12,.08);border:1px solid var(--border);color:var(--gold-dim)}
+.status-bar.error{background:rgba(154,58,42,.1);border:1px solid rgba(154,58,42,.4);color:#c97060}
+.spinner{width:12px;height:12px;border:1px solid var(--gold-dim);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Footer */
+.page-footer{text-align:center;padding:20px 0 0;border-top:1px solid var(--border);margin-top:auto}
+.page-footer a{font-size:9px;letter-spacing:.2em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div style="margin-bottom:8px"><img src="/entropy_mark_gold.svg" width="28" height="42" alt="ENTROPY" style="opacity:0.8"></div>
+    <div class="header-title">Proof of Work/Wear</div>
+    <div class="jacket-num" id="headerNum">№ —</div>
+    <div class="header-sub">Wear the jacket</div>
+  </header>
+
+  <!-- ── Intro ── -->
+  <div class="screen active" id="screenIntro">
+    <p class="intro-text">You are wearing a jacket that is part of a permanent civic record.</p>
+    <p class="intro-note">
+      Your photograph, name, and location will be added to this jacket's chain —
+      a permanent, public, cryptographically-linked record.<br><br>
+      No other data is collected. No account is created.<br>
+      The record cannot be deleted.
+    </p>
+    <div style="flex:1"></div>
+    <button class="btn-primary" onclick="startCamera()">Take my photo</button>
+    <a href="/" class="btn-secondary" style="display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--muted)">View jacket record instead</a>
+  </div>
+
+  <!-- ── Camera ── -->
+  <div class="screen" id="screenCamera">
+    <div class="camera-wrap">
+      <video id="videoEl" autoplay playsinline muted></video>
+      <canvas id="canvasEl"></canvas>
+      <div class="camera-overlay">
+        <div class="camera-frame"></div>
+        <div class="camera-corner tl"></div>
+        <div class="camera-corner tr"></div>
+        <div class="camera-corner bl"></div>
+        <div class="camera-corner br"></div>
+        <div class="camera-hint">Position your face in frame</div>
+      </div>
+    </div>
+    <div class="shutter" onclick="capturePhoto()" id="shutterBtn">
+      <div class="shutter-inner"></div>
+    </div>
+    <div class="camera-retake" onclick="showScreen('screenIntro'); stopCamera()">← Back</div>
+  </div>
+
+  <!-- ── Preview ── -->
+  <div class="screen" id="screenPreview">
+    <img id="previewImg" class="preview-img" alt="Your photo">
+    <button class="btn-primary" onclick="showScreen('screenDetails')">Use this photo</button>
+    <button class="btn-secondary" onclick="retakePhoto()">Retake</button>
+  </div>
+
+  <!-- ── Details ── -->
+  <div class="screen" id="screenDetails">
+    <div class="form-section">
+      <label class="form-label">Your name</label>
+      <input class="form-input" id="inputName" type="text" placeholder="First and last name" autocomplete="name">
+    </div>
+    <div class="form-section">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="inputLocation" type="text" placeholder="Event, City" autocomplete="off">
+    </div>
+    <div class="form-section">
+      <label class="form-label">Note <span style="color:var(--muted);font-size:9px">(optional)</span></label>
+      <input class="form-input" id="inputNote" type="text" placeholder="Anything you'd like to add">
+    </div>
+    <div class="consent-row" onclick="toggleConsent()" id="consentRow">
+      <div class="consent-box" id="consentBox">
+        <span class="consent-check">✓</span>
+      </div>
+      <div class="consent-text">
+        I understand this photograph, my name, and location will be added permanently
+        to a public blockchain record associated with this jacket and cannot be removed.
+      </div>
+    </div>
+    <button class="btn-primary" onclick="submitDetails()">Continue</button>
+    <div class="status-bar hidden" id="detailsStatus"></div>
+  </div>
+
+  <!-- ── Confirm ── -->
+  <div class="screen" id="screenConfirm">
+    <img id="confirmImg" class="confirm-photo" alt="Your photo">
+    <div class="confirm-name" id="confirmName">—</div>
+    <div class="confirm-location" id="confirmLocation">—</div>
+    <button class="btn-primary" id="confirmSubmit" onclick="submitToChain()">Add to the chain</button>
+    <button class="btn-secondary" onclick="showScreen('screenDetails')">Edit details</button>
+    <div class="status-bar hidden" id="confirmStatus"></div>
+  </div>
+
+  <!-- ── Done ── -->
+  <div class="screen" id="screenDone">
+    <div class="done-mark">✦</div>
+    <div class="done-title">Added to the record</div>
+    <p class="done-text">
+      Your photograph is now part of this jacket's civic record.<br>
+      Once the custodian confirms, it will appear permanently on the chain.
+    </p>
+    <div class="done-id" id="doneId"></div>
+    <button class="btn-primary" onclick="window.location='/'">View jacket record</button>
+  </div>
+
+  <div class="page-footer">
+    <a href="/protocol">What is this? →</a>
+  </div>
+
+</div>
+
+<script>
+const params  = new URLSearchParams(window.location.search);
+const JACKET  = (params.get('jacket') || '01').padStart(2, '0');
+const API     = '';
+
+let stream       = null;
+let photoDataURL = null;
+let photoHash    = null;
+let consented    = false;
+
+// Set jacket number
+document.getElementById('headerNum').textContent = `№ ${JACKET}`;
+
+// ── Screen nav ────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── Camera ────────────────────────────────────────────────────
+async function startCamera() {
+  showScreen('screenCamera');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } },
+      audio: false
+    });
+    document.getElementById('videoEl').srcObject = stream;
+  } catch (err) {
+    // Camera not available — fall back to file upload
+    showScreen('screenIntro');
+    showFallbackUpload(err.message);
+  }
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+}
+
+function capturePhoto() {
+  const video  = document.getElementById('videoEl');
+  const canvas = document.getElementById('canvasEl');
+  // Capture at portrait 3:4 ratio
+  const w = video.videoWidth  || 720;
+  const h = video.videoHeight || 960;
+  canvas.width  = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  // Mirror to match the mirrored preview
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, w, h);
+  photoDataURL = canvas.toDataURL('image/jpeg', 0.85);
+  stopCamera();
+
+  document.getElementById('previewImg').src   = photoDataURL;
+  document.getElementById('confirmImg').src   = photoDataURL;
+  showScreen('screenPreview');
+}
+
+function retakePhoto() {
+  photoDataURL = null;
+  photoHash    = null;
+  startCamera();
+}
+
+// Fallback for desktop / no camera
+function showFallbackUpload(reason) {
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:11px;color:var(--muted);text-align:center;padding:16px 0';
+  note.textContent = 'Camera unavailable. Please use a phone to access this page.';
+  document.getElementById('screenIntro').appendChild(note);
+}
+
+// ── Consent ───────────────────────────────────────────────────
+function toggleConsent() {
+  consented = !consented;
+  document.getElementById('consentBox').classList.toggle('checked', consented);
+}
+
+// ── Details ───────────────────────────────────────────────────
+function setStatus(id, state, msg) {
+  const el = document.getElementById(id);
+  el.className = `status-bar ${state === 'hidden' ? 'hidden' : state}`;
+  el.innerHTML = state === 'working'
+    ? `<div class="spinner"></div><span>${msg}</span>`
+    : msg;
+}
+
+async function sha256DataURL(dataURL) {
+  const base64 = dataURL.split(',')[1];
+  const binary = atob(base64);
+  const bytes  = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const hash = await crypto.subtle.digest('SHA-256', bytes);
+  return 'sha256:' + Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function submitDetails() {
+  const name     = document.getElementById('inputName').value.trim();
+  const location = document.getElementById('inputLocation').value.trim();
+
+  if (!name)     { setStatus('detailsStatus','error','Name is required'); return; }
+  if (!location) { setStatus('detailsStatus','error','Location is required'); return; }
+  if (!consented){ setStatus('detailsStatus','error','Consent is required'); return; }
+  if (!photoDataURL) { setStatus('detailsStatus','error','No photo — please go back and take a photo'); return; }
+
+  setStatus('detailsStatus','working','Preparing…');
+
+  // Hash the photo
+  photoHash = await sha256DataURL(photoDataURL);
+
+  document.getElementById('confirmName').textContent     = name;
+  document.getElementById('confirmLocation').textContent = location.toUpperCase();
+
+  setStatus('detailsStatus','hidden','');
+  showScreen('screenConfirm');
+}
+
+// ── Submit ────────────────────────────────────────────────────
+async function submitToChain() {
+  const name     = document.getElementById('inputName').value.trim();
+  const location = document.getElementById('inputLocation').value.trim();
+  const note     = document.getElementById('inputNote').value.trim();
+  const btn      = document.getElementById('confirmSubmit');
+
+  btn.disabled = true;
+  setStatus('confirmStatus','working','Submitting to chain…');
+
+  try {
+    const r = await fetch(`${API}/api/jacket/${JACKET}/worn/submit`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        location,
+        note,
+        image_hash: photoHash,
+        image_data: photoDataURL,
+        consented:  true,
+      }),
+    });
+
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+
+    // Done screen
+    document.getElementById('doneId').textContent =
+      `Submission ID: ${j.submission_id}`;
+    setStatus('confirmStatus','hidden','');
+    showScreen('screenDone');
+
+  } catch (err) {
+    setStatus('confirmStatus','error', `Error: ${err.message}`);
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
