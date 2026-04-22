@@ -10,7 +10,7 @@ A ceremonial waistcoat that functions as a physical interface to a permanent civ
 
 ## What this is
 
-ENTROPY is a system of 21 numbered suits, each paired with a node — a small hardware device that stores and serves the suit's permanent record. The record is append-only, cryptographically linked, and replicated across all 21 nodes. No central server. No operator. No private key.
+ENTROPY is a system of 21 numbered garments, each paired with a node — a small hardware device that stores and serves the garment's permanent record. The record is append-only, cryptographically linked, and replicated across all 21 nodes. No central server. No operator. No private key.
 
 **Proof of Work / Wear** — the project name.
 **Built to be Worn** — the purpose.
