@@ -2,7 +2,7 @@
 
 **The Entropy Collection** — 21 garments. No owners. One system.
 
-A ceremonial waistcoat that functions as a physical interface to a permanent civic record. Each suit holds a Bitcoin wallet, carries NFC buttons that link to a live dashboard, and accumulates a chain-verified history of custody, patches, and everyone who has ever worn it.
+A ceremonial waistcoat that functions as a physical interface to a permanent civic record. Each is linked to a Bitcoin wallet, with NFC tag buttons that open a live dashboard, and accumulates a chain-verified history of custody, patches, and everyone who has ever worn it.
 
 > *A ledger you can wear. A ceremony you can scan.*
 
@@ -243,6 +243,10 @@ The system is governed by the custodian collective. The founding body dissolves 
 
 21 suits. No owners. One system.
 
+
 ---
 
 *ENTROPY — Proof of Work / Wear — Built to be Worn*
+
+
+
